@@ -472,4 +472,51 @@ e5979465026f        49 minutes ago      /bin/sh -c #(nop)  MAINTAINER huoyinghui
 ➜  docker git:(master) ✗ 
 ```
 
+## docker 数据备份
 
+
+
+## docker 跨主机访问
+    1.使用open vswitch 实现跨主机容器连接
+    2.weave 实现跨主机
+
+##  fig 管理docker
+    http://www.fig.sh/install.html
+```concept
+➜  log-collect git:(3-gzip) ✗ docker-compose --version
+docker-compose version 1.11.2, build dfed245
+➜  log-collect git:(3-gzip) ✗ docker-machine --version
+docker-machine version 0.10.0, build 76ed2a6
+➜  log-collect git:(3-gzip) ✗ sudo pip install -U fig
+Password:
+The directory '/Users/apple/Library/Caches/pip/http' or its parent directory is not owned by the current user and the cache has been disabled. Please check the permissions and owner of that directory. If executing pip with sudo, you may want sudo's -H flag.
+The directory '/Users/apple/Library/Caches/pip' or its parent directory is not owned by the current user and caching wheels has been disabled. check the permissions and owner of that directory. If executing pip with sudo, you may want sudo's -H flag.
+Collecting fig
+  Downloading fig-1.0.1.tar.gz
+Requirement already up-to-date: docopt<0.7,>=0.6.1 in /Library/Python/2.7/site-packages/docopt-0.6.2-py2.7.egg (from fig)
+Collecting PyYAML<4,>=3.10 (from fig)
+  Downloading PyYAML-3.12.tar.gz (253kB)
+    100% |████████████████████████████████| 256kB 32kB/s 
+Collecting requests<3,>=2.2.1 (from fig)
+  Downloading requests-2.13.0-py2.py3-none-any.whl (584kB)
+    100% |████████████████████████████████| 593kB 26kB/s 
+Collecting texttable<0.9,>=0.8.1 (from fig)
+  Downloading texttable-0.8.7.tar.gz
+Collecting websocket-client<0.12,>=0.11.0 (from fig)
+  Downloading websocket-client-0.11.0.tar.gz
+Collecting docker-py<0.6,>=0.5.3 (from fig)
+  Downloading docker-py-0.5.3.tar.gz
+Collecting dockerpty<0.4,>=0.3.2 (from fig)
+  Downloading dockerpty-0.3.4.tar.gz
+Requirement already up-to-date: six<2,>=1.3.0 in /Library/Python/2.7/site-packages/six-1.10.0-py2.7.egg (from fig)
+Installing collected packages: PyYAML, requests, texttable, websocket-client, docker-py, dockerpty, fig
+  Running setup.py install for PyYAML ... done
+  Running setup.py install for texttable ... done
+  Running setup.py install for websocket-client ... done
+  Running setup.py install for docker-py ... done
+  Running setup.py install for dockerpty ... done
+  Running setup.py install for fig ... done
+Successfully installed PyYAML-3.12 docker-py-0.5.3 dockerpty-0.3.4 fig-1.0.1 requests-2.13.0 texttable-0.8.7 websocket-client-0.11.0
+➜  log-collect git:(3-gzip) ✗ fig --version
+fig 1.0.1
+```
