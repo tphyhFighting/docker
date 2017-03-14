@@ -1,4 +1,4 @@
-## docker 实践
+G## docker 实践
 
 
 
@@ -832,4 +832,11 @@ supervisor>
 2017-02-21 08:24:07,739 INFO exited: redis-server (exit status 0; not expected)
 2017-02-21 08:24:07,741 CRIT reaped unknown pid 14)
 ```
+
+
+```
+docker run -it --name abuse-robot -v /home/abuse-robot/conf:/app/conf  -v /home/abuse-robot/MailMange.py:/app/MailMange.py registry.pureapk.com/apkpure/abuse-robot:latest bash
+docker run --restart always -d --name abuse-robot -v /home/abuse-robot/conf:/app/conf   -v /home/abuse-robot/MailMange.py:/app/MailMange.py  registry.pureapk.com/apkpure/abuse-robot:latest
+```
+
 

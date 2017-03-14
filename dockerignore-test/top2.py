@@ -1,0 +1,3 @@
+import top
+
+print top
