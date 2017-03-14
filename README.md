@@ -520,3 +520,24 @@ Successfully installed PyYAML-3.12 docker-py-0.5.3 dockerpty-0.3.4 fig-1.0.1 req
 ➜  log-collect git:(3-gzip) ✗ fig --version
 fig 1.0.1
 ```
+
+
+## 文件挂载
+```
+docker run --restart always -d --name abuse-robot -v /home/abuse-robot/conf:/app/conf   -v /home/abuse-robot/MailMange.py:/app/MailMange.py  registry.pureapk.com/apkpure/abuse-robot:latest
+1.正确挂载
+➜  imgfit git:(2-dockerfile) ✗ docker run -it -v `pwd`/config.json:/app/config.json lc:v0 bash
+root@2d3f9c1fe2ea:/app# ls -kl
+total 10092
+-rw-r--r-- 1 root root      258 Jan 16 13:17 config.json
+-rwxr-xr-x 1 root root 10322800 Mar 14 06:21 imgfit
+drwxr-xr-x 2 root root     4096 Mar 14 07:03 upload
+root@2d3f9c1fe2ea:/app# ./imgfit 
+2.文件被错误挂载成目录
+➜  imgfit git:(2-dockerfile) ✗ docker run -it -v config.json:/app/config.json lc:v0 bash 
+drwxr-xr-x 2 root root     4096 Mar 14 07:04 config.json
+-rwxr-xr-x 1 root root 10322800 Mar 14 06:21 imgfit
+drwxr-xr-x 2 root root     4096 Mar 14 07:03 upload
+root@85aaadb5bed7:/app# ^C
+root@85aaadb5bed7:/app# 
+```
