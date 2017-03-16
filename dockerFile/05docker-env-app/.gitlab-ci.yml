@@ -1,0 +1,75 @@
+variables:
+  CONTAINER_TEST_IMAGE: tplinux:xxx/apkpure/imgfit:$CI_BUILD_REF_NAME
+  CONTAINER_RELEASE_IMAGE: tplinux:xxx/apkpure/imgfit:latest
+stages:
+  - build-test
+  - build-app
+  - build-env-image
+  - build-image
+  - release
+build-test:
+  stage: build-test
+  image: golang:latest
+  before_script:
+  - go version
+  - go env
+  - mkdir -p $GOPATH/src
+  - ln -s $(pwd) $GOPATH/src/imgfit
+  - cd $GOPATH/src/imgfit
+  script:
+  - ls
+  - go test -v imgfit/parse
+  only:
+    - master
+build-app:
+  stage: build-app
+  image: golang:latest
+  before_script:
+  - go version
+  - go env
+  - mkdir -p $GOPATH/src
+  - ln -s $(pwd) $GOPATH/src/imgfit
+  - cd $GOPATH/src/imgfit
+  script:
+  - make build
+  - ls build/linux-amd64/
+  artifacts:
+    name: "${CI_BUILD_NAME}_${CI_BUILD_REF_NAME}"
+    paths:
+    - build/linux-amd64/imgfit
+    expire_in: 1 week
+build-env-image:
+  stage: build-env-image
+  image: apk.302e.com:3000/docker/docker-git-lfs
+  before_script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN apk.302e.com:3000
+  script:
+  - GIT_SSL_NO_VERIFY=1 git lfs pull
+  - docker build --pull -t $CONTAINER_TEST_IMAGE -f Dockerfile.env .
+  - docker push $CONTAINER_TEST_IMAGE
+  only:
+  - env
+build-image:
+  stage: build-image
+  image: docker:latest
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN apk.302e.com:3000
+  script:
+    - pwd
+    - ls -la build/linux-amd64
+    - docker build --pull -t $CONTAINER_TEST_IMAGE -f Dockerfile.app .
+    - docker push $CONTAINER_TEST_IMAGE
+  after_script:
+    - docker rmi $CONTAINER_TEST_IMAGE
+release-image:
+  stage: release
+  before_script:
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN apk.302e.com:3000
+  after_script:
+    - docker rmi $CONTAINER_TEST_IMAGE
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
+    - docker push $CONTAINER_RELEASE_IMAGE
+  only:
+    - master
