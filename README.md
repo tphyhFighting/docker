@@ -21,7 +21,7 @@ Step 2/7 : MAINTAINER huoyinghui "huoyinghui@qpkpure.com"
  ---> Using cache
  ---> e5979465026f
 Step 3/7 : RUN apt-get update
- ---> Running in a3faf47dcdd8
+ ---> Running in a3faf47dcGdd8
 Get:1 http://security.debian.org jessie/updates InRelease [63.1 kB]
 Ign http://deb.debian.org jessie InRelease
 Get:2 http://deb.debian.org jessie-updates InRelease [145 kB]
@@ -540,4 +540,18 @@ drwxr-xr-x 2 root root     4096 Mar 14 07:04 config.json
 drwxr-xr-x 2 root root     4096 Mar 14 07:03 upload
 root@85aaadb5bed7:/app# ^C
 root@85aaadb5bed7:/app# 
+```
+
+
+
+## docker 中设定时区
+    https://tommy.net.cn/2015/02/05/config-timezone-in-docker/
+```
+首先通过下面的命令进入对应的 container:
+1# docker exec -ti container bash
+然后在 container 里面执行如下的命令：
+1# echo "Asia/Shanghai" > /etc/timezone
+2# dpkg-reconfigure -f noninteractive tzdata
+1RUN echo "Asia/Shanghai" > /etc/timezone
+2RUN dpkg-reconfigure -f noninteractive tzdata
 ```
