@@ -95,6 +95,7 @@ func TestDoDupSuppress(t *testing.T) {
 		t.Errorf("number of calls = %d; want 1", got)
 	}
 }
+```
 运行结果:
 ```
 /usr/local/Cellar/go/1.7.4_1/libexec/bin/go test -v imgfit/vendor/github.com/golang/groupcache/singleflight -run ^TestDoDupSuppress$
