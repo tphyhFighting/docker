@@ -56,9 +56,11 @@ func (g *Group) Do(key string, fn func() (interface{}, error)) (interface{}, err
 		3.再来的Do("key"), 重新获取工作获取果实
 
 ## 2.testDemo
-	1.10 个go程同时do('key'), 第一个占位成功的go程执行fn, 从通道中读数据，被阻塞.
-	2.主go程会写入"bar" 给通道
-	3.
+	1.10 个go程同时do('key'), 第一个占位成功的go程执行fn, 从通道中读数据，被阻塞; 其他的go程wait()
+	2.主go程会写入"bar" 给通道, 唤醒读端
+	3.第一占位成功的go程，读取到通道中数据后返回，wg.done().
+	4.其他go程读取结果。 
+
 ```
 func TestDoDupSuppress(t *testing.T) {
 	var g Group
@@ -93,4 +95,19 @@ func TestDoDupSuppress(t *testing.T) {
 		t.Errorf("number of calls = %d; want 1", got)
 	}
 }
+运行结果:
+```
+/usr/local/Cellar/go/1.7.4_1/libexec/bin/go test -v imgfit/vendor/github.com/golang/groupcache/singleflight -run ^TestDoDupSuppress$
+	singleflight_test.go:61: only once
+	singleflight_test.go:77: v:bar
+	singleflight_test.go:77: v:bar
+	singleflight_test.go:77: v:bar
+	singleflight_test.go:77: v:bar
+	singleflight_test.go:77: v:bar
+	singleflight_test.go:77: v:bar
+	singleflight_test.go:77: v:bar
+	singleflight_test.go:77: v:bar
+	singleflight_test.go:77: v:bar
+	singleflight_test.go:77: v:bar
+ok  	imgfit/vendor/github.com/golang/groupcache/singleflight	0.110s
 ```
