@@ -1,0 +1,66 @@
+-----------------------------------------------------------------------------------
+[root@fs12t01 abuse-robot]# convert --version
+Version: ImageMagick 6.7.8-9 2016-06-16 Q16 http://www.imagemagick.org
+Copyright: Copyright (C) 1999-2012 ImageMagick Studio LLC
+Features: OpenMP    
+[root@fs12t01 abuse-robot]#
+
+➜  imgfit git:(master) ✗ convert --version
+Version: ImageMagick 7.0.4-4 Q16 x86_64 2017-01-15 http://www.imagemagick.org
+Copyright: © 1999-2017 ImageMagick Studio LLC
+License: http://www.imagemagick.org/script/license.php
+Features: Cipher DPC HDRI Modules 
+Delegates (built-in): bzlib freetype jng jpeg ltdl lzma png tiff xml zlib
+➜  imgfit git:(master) ✗
+
+root@33c5224ef402:/upload# convert --resize 500x a20ubGVhcm5hcmFiaWNlbjFfc2NyZWVuc2hvdHNfMl9jOTkyODRiOQ  a500x.jpg
+convert.im6: unable to open image `--resize': No such file or directory @ error/blob.c/OpenBlob/2638.
+convert.im6: no decode delegate for this image format `--resize' @ error/constitute.c/ReadImage/544.
+convert.im6: unable to open image `500x': No such file or directory @ error/blob.c/OpenBlob/2638.
+convert.im6: no decode delegate for this image format `500x' @ error/constitute.c/ReadImage/544.
+root@33c5224ef402:/upload# convert --version
+Version: ImageMagick 6.7.7-10 2014-03-06 Q16 http://www.imagemagick.org
+Copyright: Copyright (C) 1999-2012 ImageMagick Studio LLC
+Features: OpenMP
+root@33c5224ef402:/upload# exit
+➜  imgfit git:(2-imgfit-docker-convert) ✗ docker run -it -v `pwd`/upload:/upload jujhars13/docker-imagemagick:latest bash
+
+版本需要更新？
+-----------------------------------------------------------------------------------
+[root@fs12t01 upload]# df -h
+文件系统        容量  已用  可用 已用% 挂载点
+/dev/root        20G  8.8G   11G   46% /
+devtmpfs        7.9G     0  7.9G    0% /dev
+tmpfs           7.9G  4.0K  7.9G    1% /dev/shm
+tmpfs           7.9G  218M  7.7G    3% /run
+tmpfs           7.9G     0  7.9G    0% /sys/fs/cgroup
+/dev/sdc4       3.7T  592G  3.1T   16% /mnt/disk3
+/dev/sdb4       3.7T  578G  3.1T   16% /mnt/disk2
+/dev/sda4       3.7T  564G  3.1T   16% /mnt/disk1
+overlay          20G  8.8G   11G   46% /home/docker/data/overlay2/74ff74a79a7d4dbb6245119af992f845224c289f095b69b774b22c07ff637ad2/merged
+shm              64M     0   64M    0% /home/docker/data/containers/bc93de8cde459e1b83f8f417a86ced386620d85cd9f0e649acc74406f9387c71/shm
+overlay          20G  8.8G   11G   46% /home/docker/data/overlay2/94d049027993f2de0f57f7f8dddc9375a80c737ff870cde14b2d2236bebfc109/merged
+shm              64M     0   64M    0% /home/docker/data/containers/902bd228e313783436eb8566e9b4860fd1e675e5a8d28932066f3798d6527e3f/shm
+tmpfs           1.6G     0  1.6G    0% /run/user/0
+overlay          20G  8.8G   11G   46% /home/docker/data/overlay2/4f8114d6a5f2e47d7edf8e156015763c03c47678ed87673212fdf630b3474ea7/merged
+shm              64M     0   64M    0% /home/docker/data/containers/43d0f9979feb28768eee36012efc120dc42033b445dd2c4093c071a3a13f5b06/shm
+[root@fs12t01 upload]#
+[root@fs12t01 upload]# rm ./* -f
+[root@fs12t01 upload]# df -h
+文件系统        容量  已用  可用 已用% 挂载点
+/dev/root        20G  7.4G   13G   38% /
+devtmpfs        7.9G     0  7.9G    0% /dev
+tmpfs           7.9G  4.0K  7.9G    1% /dev/shm
+tmpfs           7.9G  218M  7.7G    3% /run
+tmpfs           7.9G     0  7.9G    0% /sys/fs/cgroup
+/dev/sdc4       3.7T  593G  3.1T   16% /mnt/disk3
+/dev/sdb4       3.7T  578G  3.1T   16% /mnt/disk2
+/dev/sda4       3.7T  564G  3.1T   16% /mnt/disk1
+overlay          20G  7.4G   13G   38% /home/docker/data/overlay2/74ff74a79a7d4dbb6245119af992f845224c289f095b69b774b22c07ff637ad2/merged
+shm              64M     0   64M    0% /home/docker/data/containers/bc93de8cde459e1b83f8f417a86ced386620d85cd9f0e649acc74406f9387c71/shm
+overlay          20G  7.4G   13G   38% /home/docker/data/overlay2/94d049027993f2de0f57f7f8dddc9375a80c737ff870cde14b2d2236bebfc109/merged
+shm              64M     0   64M    0% /home/docker/data/containers/902bd228e313783436eb8566e9b4860fd1e675e5a8d28932066f3798d6527e3f/shm
+tmpfs           1.6G     0  1.6G    0% /run/user/0
+overlay          20G  7.4G   13G   38% /home/docker/data/overlay2/4f8114d6a5f2e47d7edf8e156015763c03c47678ed87673212fdf630b3474ea7/merged
+shm              64M     0   64M    0% /home/docker/data/containers/43d0f9979feb28768eee36012efc120dc42033b445dd2c4093c071a3a13f5b06/shm
+[root@fs12t01 upload]#

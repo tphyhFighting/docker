@@ -1,0 +1,37 @@
+insert into "public"."common_task" ( "type", "log_data", "delay_time_ms") values ( 'ao','{'versionCode': '1'}', '1500');
+insert into "public"."common_task" ( "log_data", "type", "delay_time_ms") values ( '{"a":1}', 'aa', '555');
+insert into "public"."common_task" ( "log_data", "type", "delay_time_ms") values ( 
+'{"versionCode": 1, "data": "item0", "sysVersion": "6.0", "apkVersion": "1.2.3", "channelID": 843984932}', 
+'aa', 
+'555'
+);
+
+
+
+
+1.元数据
+1	2140043940	{"sysVersion":"6.0","apkVersion":"1.2.3","channelID":"843984932","versionCode":"1","data":"item0"}	on0	
+
+2.insert db
+失败
+INSERT INTO "common_task" ("type", "log_data", "delay_time_ms") VALUES (`app`, `{'versionCode': '1', 'data': 'item0', 'sysVersion': '6.0', 'apkVersion': '1.2.3', 'channelID': '843984932'}`, `1488281277`) 
+
+成功：
+insert into "common_task" ( "type", "log_data", "delay_time_ms") values ( 'aa', '{"data": "item0", "channelID": 843984932, "apkVersion": "1.2.3", "sysVersion": "6.0", "versionCode": 1}', '555');
+
+
+3.定位log.data 数据在哪个环节被替换？
+
+
+---------------
+table `log_collect` already exists, skip
+-- --------------------------------------------------
+--  Table Structure for `log-collect/models.LogCommonTask`
+-- --------------------------------------------------
+CREATE TABLE IF NOT EXISTS "log_collect" (
+    "id" serial NOT NULL PRIMARY KEY,
+    "type" text NOT NULL DEFAULT '' ,
+    "log_data" jsonb NOT NULL DEFAULT '{}' ,
+    "delay_time_ms" bigint NOT NULL DEFAULT 0 
+);
+CREATE INDEX "log_collect_id_type" ON "log_collect" ("id", "type");
