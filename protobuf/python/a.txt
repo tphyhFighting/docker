@@ -1,0 +1,2 @@
+
+appk{'versionCode': '1', 'data': 'item0', 'sysVersion': '6.0', 'apkVersion': '1.2.3', 'channelID': '843984932'}…Ê‘≈
