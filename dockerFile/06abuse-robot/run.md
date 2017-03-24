@@ -23,3 +23,6 @@ root     19575  0.0  0.0 212764 14060 ?        S    02:19   0:09 python MailMang
 
 	17.3.19 pycharm 中运行超过12小时正常。可以被调度到
 	nohup / docker 12h 后无法被正常调度
+
+
+docker run --log-opt max-size=10m --log-opt max-file=3  --restart always -d --name abuse-robot -v /home/abuse-robot/conf:/app/conf  maillocal

@@ -33,3 +33,7 @@ docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d  --resta
 
 
 docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d  --restart always -p 8001:8001 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  registry.pureapk.com/apkpure/imgfit 
+
+
+
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d  --restart always -p 8001:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit 
