@@ -37,3 +37,18 @@ docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d  --resta
 
 
 docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d  --restart always -p 8001:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit 
+
+
+==================================
+170329
+ser:
+make docker
+docker build --no-cache   -t imgfit  -f Dockerfile.app .
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d  --restart always -p 8001:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/build/conf:/app/conf  imgfit
+
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -it -p 8000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/build/conf:/app/conf  imgfit bash
+
+cache-s: 9000
+make docker
+docker build --no-cache   -t imgfitcache  -f Dockerfile.app .
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit-c -d  --restart always -p 9000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  iimgfitcache 
