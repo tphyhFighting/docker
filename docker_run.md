@@ -4,6 +4,9 @@ docker run -it -v `pwd`/upload:/upload jujhars13/docker-imagemagick:latest bash
 docker run --log-opt max-size=10m --log-opt max-file=3  --restart always -d --name abuse-robot -v /home/abuse-robot/conf:/app/conf  maillocal
 docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit-c -d  --restart always -p 9000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  iimgfitcache 
 
+#####mongod
+	docker  run --log-opt max-size=10m --log-opt max-file=3  --restart always -d --name mongod -p 27017:27017  mongo:3.2
+
 
 ##smart-backup
 docker run -it --log-opt max-size=10m --log-opt max-file=3 --name smart-backup -v `pwd`/conf:/app/conf -v `pwd`/tmp:/app/tmp  smart_backup bash 
