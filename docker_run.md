@@ -2,7 +2,8 @@
 
 docker run -it -v `pwd`/upload:/upload jujhars13/docker-imagemagick:latest bash
 docker run --log-opt max-size=10m --log-opt max-file=3  --restart always -d --name abuse-robot -v /home/abuse-robot/conf:/app/conf  maillocal
-docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit-c -d  --restart always -p 9000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  iimgfitcache 
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit-c -d  --restart always -p 9000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfitcache 
+docker run -it --log-opt max-size=10m --log-opt max-file=3  --name smart-backup-mongo -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32 sh 
 
 #####mongod
 	docker  run --log-opt max-size=10m --log-opt max-file=3  --restart always -d --name mongod -p 27017:27017  mongo:3.2
@@ -18,8 +19,8 @@ docker run -it --log-opt max-size=10m --log-opt max-file=3 --name smart-backup -
 /app/app run --config conf/mongdb_dump.json --jobname job_cmd_mongo
 
 docker run -it --log-opt max-size=10m --log-opt max-file=3 --name smart-backup -v `pwd`/conf:/app/conf -v `pwd`/tmp:/app/tmp  smart_backup bash
-docker run -it --log-opt max-size=10m --log-opt max-file=3 --name smart-backup-mongo -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32_1-  bash
-docker run -it --log-opt max-size=10m --log-opt max-file=3 --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96_1-  bash
+docker run -it --log-opt max-size=10m --log-opt max-file=3 --name smart-backup-mongo -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32  bash
+docker run -it --log-opt max-size=10m --log-opt max-file=3 --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96  bash
 
 docker run -it --log-opt max-size=10m --log-opt max-file=3 --name smart-backup-mongo -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32_master  bash
 docker run -it --log-opt max-size=10m --log-opt max-file=3 --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96_master sh 
@@ -43,18 +44,18 @@ psql -U testuser -h 172.28.18.51 testdb
 
 
 ##部署
-docker run --log-opt max-size=10m --log-opt max-file=3  --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96_email sh -c "/app/app run --config conf/pg_dump.json --jobname job_cmd_pg2"
+docker run --log-opt max-size=10m --log-opt max-file=3  --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96 sh -c "/app/app run --config conf/pg_dump.json --jobname job_cmd_pg2"
 
-docker run --log-opt max-size=10m --log-opt max-file=3  --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96_email sh -c "/app/app cron --config conf/pg_dump.json "
+docker run --log-opt max-size=10m --log-opt max-file=3  --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96 sh -c "/app/app cron --config conf/pg_dump.json "
 
-docker run --log-opt max-size=10m --log-opt max-file=3 --restart always -d --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96_master sh -c "/app/app cron --config conf/pg_dump.json "
+docker run --log-opt max-size=10m --log-opt max-file=3 --restart always -d --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96 sh -c "/app/app cron --config conf/pg_dump.json "
 
-docker run --log-opt max-size=10m --log-opt max-file=3 --restart always -d --name smart-backup-mongo -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32_master sh -c "/app/app cron --config conf/mongdb_dump.json "
+docker run --log-opt max-size=10m --log-opt max-file=3 --restart always -d --name smart-backup-mongo -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32 sh -c "/app/app cron --config conf/mongdb_dump.json "
 
 #email
-docker run --log-opt max-size=10m --log-opt max-file=3 --restart always -d --name smart-backup-mongo -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32_email sh -c "/app/app cron --config conf/mongdb_dump.json "
+docker run --log-opt max-size=10m --log-opt max-file=3 --restart always -d --name smart-backup-mongo -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32 sh -c "/app/app cron --config conf/mongdb_dump.json "
 
-docker run --log-opt max-size=10m --log-opt max-file=3 --restart always -d --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96_email sh -c "/app/app cron --config conf/pg_dump.json "
+docker run --log-opt max-size=10m --log-opt max-file=3 --restart always -d --name smart-backup-pg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:pg_96 sh -c "/app/app cron --config conf/pg_dump.json "
 
 docker run --log-opt max-size=10m --log-opt max-file=3 -it --name smart-backup-mg -v `pwd`/conf:/app/conf    apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32_email sh 
 ##log

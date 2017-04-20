@@ -36,7 +36,8 @@ docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d  --resta
 
 
 
-docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d  --restart always -p 8001:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit 
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d  --restart always -p 9000:9000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  apk.302e.com:3000/apkpure/imgfit
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -it -p 9000:9000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  apk.302e.com:3000/apkpure/imgfit bash
 
 
 ==================================
@@ -51,4 +52,4 @@ docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -it -p 8000
 cache-s: 9000
 make docker
 docker build --no-cache   -t imgfitcache  -f Dockerfile.app .
-docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit-c -d  --restart always -p 9000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  iimgfitcache 
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit-c -d  --restart always -p 9000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfitcache 
