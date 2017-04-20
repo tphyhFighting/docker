@@ -65,7 +65,7 @@ func (g *Group) Do(key string, fn func() (interface{}, error)) (interface{}, err
 func TestDoDupSuppress(t *testing.T) {
 	var g Group
 	c := make(chan string)
-	var calls int32
+	var calls int32g
 	fn := func() (interface{}, error) {
 		atomic.AddInt32(&calls, 1)
 		t.Logf("only once")                    //只会被第一个占位成功的go程执行
