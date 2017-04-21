@@ -1,0 +1,313 @@
+diff --git a/.gitlab-ci.yml b/.gitlab-ci.yml
+index 6f6bd36..bdad27f 100644
+--- a/.gitlab-ci.yml
++++ b/.gitlab-ci.yml
+@@ -5,6 +5,7 @@ variables:
+ stages:
+   - build-test
+   - build-app
++  - build-env-image
+   - build-image
+   - release
+ build-test:
+@@ -62,4 +63,14 @@ build-image-pg:
+     - docker push $CONTAINER_TEST_IMAGE_PG
+   after_script:
+     - docker rmi $CONTAINER_TEST_IMAGE_PG
+-
++build-env-image:
++  stage: build-env-image
++  image: apk.302e.com:3000/docker/docker-git-lfs
++  before_script:
++  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN apk.302e.com:3000
++  script:
++  - GIT_SSL_NO_VERIFY=1 git lfs pull
++  - docker build --pull -t $CONTAINER_TEST_IMAGE_MONGO -f contrib/mongo-32/Dockerfile.env .
++  - docker push $CONTAINER_TEST_IMAGE_MONGO
++  only:
++  - env
+diff --git a/README.md b/README.md
+index 090a1fe..b2e30a7 100644
+--- a/README.md
++++ b/README.md
+@@ -99,4 +99,5 @@ json说明：
+     --config: 指定程序的配置文件. json/yml
+     定时运行conf/pg_dump.json配置中的所有job
+ 
+-
++##### 邮件报警
++config = fmt.Sprintf(`{"username":"%s","password":"%s","host":"%s","port":%d,"from":"%s"}`, username, password, host, port, from)
+diff --git a/cmd/cron.go b/cmd/cron.go
+index 02bcdda..dcdbc76 100644
+--- a/cmd/cron.go
++++ b/cmd/cron.go
+@@ -80,6 +80,7 @@ func cronCall(cmd *cobra.Command, args []string) {
+ 	c := cron.NewWithLocation(location)
+ 	for index, job := range bcJob.Jobs {
+ 		logger.Debugf("index:%v job:%v", index, job)
++		job.Mail = &bcJob.Mail
+ 		c.AddJob(job.Cron, job)
+ 	}
+ 
+diff --git a/cmd/run.go b/cmd/run.go
+index b1d0155..626be9c 100644
+--- a/cmd/run.go
++++ b/cmd/run.go
+@@ -45,7 +45,7 @@ to quickly create a Cobra application.`,
+ 
+ 		bcJob, err := job.LoadConf(config.Value.String())
+ 		if err != nil {
+-			logger.Errorf("err:%v tmpyml:%v", err, bcJob)
++			logger.Errorf("err:%v config:%v", err, bcJob)
+ 			return
+ 		}
+ 
+@@ -60,6 +60,7 @@ to quickly create a Cobra application.`,
+ 		for index, job := range bcJob.Jobs{
+ 			logger.Debugf("index:%v job:%v", index, job)
+ 			if jobName.Value.String() == job.Name{
++				job.Mail = &bcJob.Mail
+ 				job.Run()
+ 			}
+ 		}
+diff --git a/contrib/mongo-32/Dockerfile b/contrib/mongo-32/Dockerfile
+index 4adae46..94de495 100644
+--- a/contrib/mongo-32/Dockerfile
++++ b/contrib/mongo-32/Dockerfile
+@@ -1,6 +1,5 @@
+-FROM mongo:3.2
++FROM apk.302e.com:3000/apkpure/ops/smart-backup:mongo_32_env
+ WORKDIR /app
+ RUN mkdir -p /tmp/smart_backup
+-RUN echo "Asia/Shanghai" > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
+ COPY build/linux-amd64/smart-backup /app/app
+ CMD ["/app/app"]
+diff --git a/contrib/mongo-32/Dockerfile.env b/contrib/mongo-32/Dockerfile.env
+new file mode 100644
+index 0000000..b53ee93
+--- /dev/null
++++ b/contrib/mongo-32/Dockerfile.env
+@@ -0,0 +1,8 @@
++FROM mongo:3.2
++WORKDIR /app
++RUN mkdir -p /tmp/smart_backup
++RUN echo "Asia/Shanghai" > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
++RUN apt-get update
++RUN apt-get install -y ca-certificates
++#COPY build/linux-amd64/smart-backup /app/app
++#CMD ["/app/app"]
+diff --git a/contrib/pg-96/Dockerfile b/contrib/pg-96/Dockerfile
+index 1748737..6f92a99 100644
+--- a/contrib/pg-96/Dockerfile
++++ b/contrib/pg-96/Dockerfile
+@@ -3,6 +3,8 @@ WORKDIR /app
+ RUN mkdir -p /tmp/smart_backup
+ #RUN echo "Asia/Shanghai" > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
+ RUN apk add --update tzdata
++#sendmail x509
++RUN apk add --update ca-certificates
+ ENV TZ=Asia/Shanghai
+ # Clean APK cache
+ RUN rm -rf /var/cache/apk/*
+diff --git a/job/jobs.go b/job/jobs.go
+index 45613a6..536721b 100644
+--- a/job/jobs.go
++++ b/job/jobs.go
+@@ -12,6 +12,7 @@ import (
+ 	"smart-backup/logger"
+ 	"smart-backup/storage"
+ 	"smart-backup/utils"
++	"smart-backup/mail"
+ 	"sort"
+ 	"strings"
+ 	"time"
+@@ -24,25 +25,35 @@ const APPBACKUPPATH = "/tmp/smart_backup"
+ type BackupJobConfig struct {
+ 	Timezone string       `yaml:"timezone" json:"timezone"` //可以自定义cron的执行时区
+ 	Jobs     []*BackupJob `yaml:"jobs,flow" json:"jobs"`
++	Mail       mail.MailInfo    `yaml:"mail" json:"mail"`                     // 邮件
+ }
+ 
++//type BackupJobWithMail struct {
++//
++//
++//}
++
+ type BackupJob struct {
+ 	Name         string           `yaml:"name" json:"name"`
+ 	Cron         string           `yaml:"cron" json:"cron"`                   // crontab
+ 	Command      []string         `yaml:"command" json:"command"`             // shell command
+ 	ENV          []string         `yaml:"env" json:"env"`                     // shell env
++	Mail       *mail.MailInfo    `yaml:"mail" json:"mail"`                     // 邮件
+ 	WeeklyKeeps  int              `yaml:"weekly_keeps" json:"weekly_keeps"`   // 月备份保留天数
+ 	DailyKeeps   int              `yaml:"daily_keeps" json:"daily_keeps"`     // 周备份保存天数
+ 	MonthlyKeeps int              `yaml:"monthly_keeps" json:"monthly_keeps"` // 日备份保留天数
+ 	Storage      []*StorageConfig `yaml:"storage,flow" json:"storage"`        // 后端存储，如果指定多个，那么分别上传
+ }
+ 
++
++
+ type StorageConfig struct {
+ 	S3 *storage.S3Config `yaml:"s3,flow" json:"s3"` //s3 配置
+ }
+ 
+ func (job *BackupJob) Run() {
+ 	var err error
++	var out []byte
+ 	logger.Debugf("job.name:%v start .. ", job.Name)
+ 	defer func() {
+ 		logger.Debugf("job.name:%v done... err:%v", job.Name, err)
+@@ -64,11 +75,11 @@ func (job *BackupJob) Run() {
+ 	//note:shell 命令执行异常, 请核查cmd配置中命令是否包含了多余空格
+ 	for index, cmdTmp := range job.Command {
+ 		var cmd *exec.Cmd
++		out = []byte("")
+ 		logger.Debugf("## CMD:%v", cmdTmp)
+ 		cmd = exec.Command("sh", "-c", cmdTmp)
+ 		cmd.Env = append(osEnv, job.ENV...)
+ 		cmd.Env = append(cmd.Env, fmt.Sprintf("OUTPUTPATH=%s", path.Join(APPBACKUPPATH, job.Name)))
+-		var out []byte
+ 		out, err = cmd.CombinedOutput()
+ 		logger.Infof("## ENV:%v...", cmd.Env)
+ 		logger.Infof("## STDOUT:%v", string(out))
+@@ -149,9 +160,23 @@ func (job *BackupJob) Run() {
+ 	return
+ 
+ 	SENDMAIL:
+-	logger.Errorf("err:%v will send email", err)
++		logger.Errorf("err:%v will send email", err)
++		if job.Mail == nil {
++			return
++		}
++
++		mailSub := "backup plan"
++		mailOut := fmt.Sprintf("\nSTDOUT:%v", string(out))
++		mailErr := fmt.Sprintf("\nSTDERR:%v", err)
++		err = mail.SendToMail(job.Mail.MailUser, job.Mail.MailUserPasswd, job.Mail.MailHost, job.Mail.MailTo,
++			mailSub, mailOut, mailErr,job.ENV, job.Command, "html")
++		if err != nil {
++			logger.Errorf("send mail err:%v", err)
++		}
+ 		return
+ }
++
++
+ func backupClean(fileList []string, dailyKeeps, weekKeeps, monthKeeps int) (cleanFileList []string, err error) {
+ 	//1.不能删除最近的dailykeeps天的数据
+ 	//至少保留2份
+diff --git a/mail/mail.go b/mail/mail.go
+new file mode 100644
+index 0000000..7104f3a
+--- /dev/null
++++ b/mail/mail.go
+@@ -0,0 +1,78 @@
++package mail
++
++import (
++	"bytes"
++	"strings"
++	"net/smtp"
++	"html/template"
++	"smart-backup/logger"
++)
++
++var mailTpl *template.Template
++func init()  {
++	mailTpl, _ = template.New("mail_tpl").Parse(`
++	你好 {{.username}}，<br/>
++
++<p>任务详情：</p>
++<p>
++命令数量:{{.cmdlen}}
++<br>
++{{range $index, $elem := .cmds}}
++    {{$index}}:{{$elem}}
++    <br>
++{{end}}
++<br>
++环境变量:
++{{range $index, $elem := .env}}
++    {{$index}}:{{$elem}}
++    <br>
++{{end}}
++</p>
++<p>-------------以下是任务执行输出-------------</p>
++<p>
++{{.output}}
++</p>
++<p>-------------以下是任务执行错误信息-------------</p>
++{{.outputerr}}
++<p>
++--------------------------------------------<br />
++本邮件由系统自动发出，请勿回复<br />
++</p>
++`)
++
++}
++type MailInfo struct {
++	MailUser 		string `yaml:"mailuser" json:"mailuser"`
++	MailUserPasswd		string `yaml:"mailuserpasswd" json:"mailuserpasswd"`
++	MailHost 		string `yaml:mailhost json:"mailhost"`
++	MailTo 			string `yaml:mailto json:"mailto"`
++}
++
++func SendToMail(user, password, host, to, subject, out, outErr string,env, cmd []string, mailtype string) error {
++	hp := strings.Split(host, ":")
++	auth := smtp.PlainAuth("", user, password, hp[0])
++	var content_type string
++	if mailtype == "html" {
++		content_type = "Content-Type: text/" + mailtype + "; charset=UTF-8"
++	} else {
++		content_type = "Content-Type: text/plain" + "; charset=UTF-8"
++	}
++
++	data := make(map[string]interface{})
++	data["username"] = to
++	data["output"] = out
++	data["outputerr"] = outErr
++	data["cmds"] = cmd
++	data["env"] = env
++	data["cmdlen"] = len(cmd)
++	content := new(bytes.Buffer)
++	mailTpl.Execute(content, data)
++	body := content.String()
++	logger.Debugf("body:%v", body)
++	msg := []byte("To: " + to + "\r\nFrom: " + user + ">\r\nSubject: " + subject + "\r\n" + content_type + "\r\n\r\n" + body)
++	send_to := strings.Split(to, ";")
++	err := smtp.SendMail(host, auth, user, send_to, msg)
++	logger.Debugf("err:%v", err)
++	return err
++}
++
+diff --git a/mail/mail_test.go b/mail/mail_test.go
+new file mode 100644
+index 0000000..008c2e0
+--- /dev/null
++++ b/mail/mail_test.go
+@@ -0,0 +1,26 @@
++package mail
++
++import (
++	"testing"
++	"smart-backup/logger"
++)
++
++
++func TestSendToMail(t *testing.T) {
++	user := "dmca@apkpure.com"
++	password := "4myCOPYworks6@29"
++	host := "smtp.exmail.qq.com:25"
++	to := "2285020853@qq.com"
++	subject := "使用Golang发送邮件"
++	out := `2017/04/11 14:44:19 [I] [jobs.go:74] ## STDOUT:`
++	logger.Debug("send email")
++	cmd := []string{"pwd", "ls"}
++	env := []string{"env1", "env2"}
++	err := SendToMail(user, password, host, to, subject, out, "err", env, cmd, "html")
++	if err != nil {
++		logger.Errorf("err:%v", err)
++	} else {
++		logger.Errorf("err:%v", err)
++	}
++
++}

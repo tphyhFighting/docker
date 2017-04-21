@@ -1,0 +1,103 @@
+diff --git a/job/jobs.go b/job/jobs.go
+index bf9ad80..9501a9d 100644
+--- a/job/jobs.go
++++ b/job/jobs.go
+@@ -52,13 +52,15 @@ type StorageConfig struct {
+ func (job *BackupJob) Run() {
+ 	var err error
+ 	var out []byte
++	outPutPath := path.Join(APPBACKUPPATH, job.Name)
++
+ 	logger.Debugf("job.name:%v start .. ", job.Name)
+ 	defer func() {
+ 		logger.Debugf("job.name:%v done... err:%v", job.Name, err)
+ 	}()
+ 
+ 	//1.运行job前，先创建/tmp/smart_backup/job_name, 任务退出时，删除目录
+-	err = UploadDirCreat(job.Name)
++	err = UploadDirCreat(outPutPath)
+ 	if err != nil {
+ 		logger.Errorf("err:%v", err)
+ 		return
+@@ -67,7 +69,7 @@ func (job *BackupJob) Run() {
+ 		if err = DeleteDir(name); err != nil {
+ 			logger.Errorf("DeleteDir err:%v", err)
+ 		}
+-	}(job.Name)
++	}(outPutPath)
+ 
+ 	osEnv := os.Environ()
+ 	//note:shell 命令执行异常, 请核查cmd配置中命令是否包含了多余空格
+@@ -77,7 +79,7 @@ func (job *BackupJob) Run() {
+ 		logger.Debugf("## CMD:%v", cmdTmp)
+ 		cmd = exec.Command("sh", "-c", cmdTmp)
+ 		cmd.Env = append(osEnv, job.ENV...)
+-		cmd.Env = append(cmd.Env, fmt.Sprintf("OUTPUTPATH=%s", path.Join(APPBACKUPPATH, job.Name)))
++		cmd.Env = append(cmd.Env, fmt.Sprintf("OUTPUTPATH=%s", outPutPath))
+ 		out, err = cmd.CombinedOutput()
+ 		logger.Infof("## ENV:%v...", cmd.Env)
+ 		logger.Infof("## STDOUT:%v", string(out))
+@@ -96,7 +98,7 @@ func (job *BackupJob) Run() {
+ 		}
+ 		fs := storage.NewS3Storage(s3.S3.AccessKey, s3.S3.SecretKey, s3.S3.Endpoint, s3.S3.Bucket, fmt.Sprintf("%s_%s", s3.S3.Prefix, job.Name))
+ 		//local:  dir/jobname/backupfile
+-		backupFilePath := fmt.Sprintf("%s/%s", APPBACKUPPATH, job.Name)
++		backupFilePath := path.Join(APPBACKUPPATH, job.Name)
+ 		//遍历 backupFilePath 目录, 对目录下所有文件备份
+ 		err = filepath.Walk(backupFilePath, func(localPath string, f os.FileInfo, err error) error {
+ 			if f == nil {
+@@ -108,9 +110,8 @@ func (job *BackupJob) Run() {
+ 			}
+ 			//path
+ 			tmpKey := ""
+-			localPathPre := path.Join(APPBACKUPPATH, job.Name)
+-			if strings.HasPrefix(localPath, localPathPre) {
+-				tmpKey = localPath[len(localPathPre):]
++			if strings.HasPrefix(localPath, outPutPath) {
++				tmpKey = localPath[len(outPutPath):]
+ 			}
+ 			t := time.Now()
+ 			y, m, d := t.Date()
+@@ -295,32 +296,28 @@ func LoadConf(filepath string) (tmpBackupJobConfig *BackupJobConfig, err error)
+ 	return tmpBackupJobConfig, nil
+ }
+ 
+-func UploadDirCreat(jobName string) (err error) {
+-	err = DeleteDir(jobName)
++func UploadDirCreat(dirPath string) (err error) {
++	err = DeleteDir(dirPath)
+ 	if err != nil {
+ 		return
+ 	}
+ 
+-	if err = os.MkdirAll(jobName, 0666); err != nil {
+-		logger.Errorf("err:%v filename:%s", err, jobName)
++	if err = os.MkdirAll(dirPath, 0666); err != nil {
++		logger.Errorf("err:%v filename:%s", err, dirPath)
+ 		return err
+ 	}
+ 	return nil
+ }
+ 
+-func DeleteDir(jobName string) (err error) {
+-	if jobName == "" || jobName == "/" || jobName == "/ " {
+-		err = fmt.Errorf("jobname err.:%v", jobName)
++func DeleteDir(dirPath string) (err error) {
++	if !strings.HasPrefix(dirPath, APPBACKUPPATH) {
++		err = fmt.Errorf("jobname err.:%v", dirPath)
+ 		return
+ 	}
+ 
+-	if !strings.HasPrefix(jobName, APPBACKUPPATH) {
+-		jobName = path.Join(APPBACKUPPATH, jobName)
+-	}
+-
+-	if utils.Exist(jobName) {
+-		if err = os.RemoveAll(jobName); err != nil {
+-			logger.Errorf("err:%v filename:%s", err, jobName)
++	if utils.Exist(dirPath) {
++		if err = os.RemoveAll(dirPath); err != nil {
++			logger.Errorf("err:%v filename:%s", err, dirPath)
+ 			return err
+ 		}
+ 	}

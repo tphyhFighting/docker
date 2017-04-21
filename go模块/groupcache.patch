@@ -1,0 +1,341 @@
+diff --git a/vendor/github.com/golang/groupcache/consistenthash/consistenthash.go b/vendor/github.com/golang/groupcache/consistenthash/consistenthash.go
+index a9c56f0..e6b9fde 100644
+--- a/vendor/github.com/golang/groupcache/consistenthash/consistenthash.go
++++ b/vendor/github.com/golang/groupcache/consistenthash/consistenthash.go
+@@ -19,6 +19,7 @@ package consistenthash
+ 
+ import (
+ 	"hash/crc32"
++	"fmt"
+ 	"sort"
+ 	"strconv"
+ )
+@@ -33,6 +34,10 @@ type Map struct {
+ }
+ 
+ func New(replicas int, fn Hash) *Map {
++	fmt.Printf("New replicas:%v fh:%v start\n", replicas, fn)
++	defer func() {
++		fmt.Printf("New replicas:%v fh:%v end\n", replicas, fn)
++	} ()
+ 	m := &Map{
+ 		replicas: replicas,
+ 		hash:     fn,
+@@ -51,6 +56,10 @@ func (m *Map) IsEmpty() bool {
+ 
+ // Adds some keys to the hash.
+ func (m *Map) Add(keys ...string) {
++	fmt.Printf("Map Add keys:%v m.keys:%v start\n", keys, m.keys)
++	defer func() {
++		fmt.Printf("Map Add m.keys:%v end\n",m.keys)
++	} ()
+ 	for _, key := range keys {
+ 		for i := 0; i < m.replicas; i++ {
+ 			hash := int(m.hash([]byte(strconv.Itoa(i) + key)))
+@@ -63,6 +72,10 @@ func (m *Map) Add(keys ...string) {
+ 
+ // Gets the closest item in the hash to the provided key.
+ func (m *Map) Get(key string) string {
++	fmt.Printf("Map Get key:%v m.keys:%v start\n", key, m.keys)
++	defer func() {
++		fmt.Printf("Map Get m.keys:%v end\n",m.keys)
++	} ()
+ 	if m.IsEmpty() {
+ 		return ""
+ 	}
+@@ -76,6 +89,7 @@ func (m *Map) Get(key string) string {
+ 	if idx == len(m.keys) {
+ 		idx = 0
+ 	}
++	fmt.Printf("idx:%v...hash:%v\n....v:%v.......vv:%v\n", idx, hash, m.keys[idx], m.hashMap[m.keys[idx]])
+ 
+ 	return m.hashMap[m.keys[idx]]
+ }
+diff --git a/vendor/github.com/golang/groupcache/groupcache.go b/vendor/github.com/golang/groupcache/groupcache.go
+index 9499dbb..15e1ded 100644
+--- a/vendor/github.com/golang/groupcache/groupcache.go
++++ b/vendor/github.com/golang/groupcache/groupcache.go
+@@ -34,6 +34,7 @@ import (
+ 	pb "github.com/golang/groupcache/groupcachepb"
+ 	"github.com/golang/groupcache/lru"
+ 	"github.com/golang/groupcache/singleflight"
++	"fmt"
+ )
+ 
+ // A Getter loads data for a key.
+@@ -197,18 +198,27 @@ func (g *Group) Name() string {
+ }
+ 
+ func (g *Group) initPeers() {
++	fmt.Printf("Group.initPeers Begin g.peers:%v\n", g.peers)
++	defer func() {
++		fmt.Printf("Group.initPeers End g.peers:%v\n", g.peers)
++	}()
+ 	if g.peers == nil {
+ 		g.peers = getPeers()
+ 	}
+ }
+ 
+ func (g *Group) Get(ctx Context, key string, dest Sink) error {
++	fmt.Printf("Group.Get key:%v..Begin\n", key)
++	defer func(key string) {
++		fmt.Printf("Group.Get key:%v..End\n", key)
++	}(key)
+ 	g.peersOnce.Do(g.initPeers)
+ 	g.Stats.Gets.Add(1)
+ 	if dest == nil {
+ 		return errors.New("groupcache: nil dest Sink")
+ 	}
+ 	value, cacheHit := g.lookupCache(key)
++	fmt.Printf("Group.Get g.lookupCache cacheHit:%v\n", cacheHit)
+ 
+ 	if cacheHit {
+ 		g.Stats.CacheHits.Add(1)
+@@ -221,6 +231,7 @@ func (g *Group) Get(ctx Context, key string, dest Sink) error {
+ 	// case will likely be one caller.
+ 	destPopulated := false
+ 	value, destPopulated, err := g.load(ctx, key, dest)
++	fmt.Printf("Group Get g.load destPopulated:%v\n", destPopulated)
+ 	if err != nil {
+ 		return err
+ 	}
+@@ -232,6 +243,11 @@ func (g *Group) Get(ctx Context, key string, dest Sink) error {
+ 
+ // load loads key either by invoking the getter locally or by sending it to another machine.
+ func (g *Group) load(ctx Context, key string, dest Sink) (value ByteView, destPopulated bool, err error) {
++	fmt.Printf("Group load key:%v..Begin\n", key)
++	defer func(key string) {
++		fmt.Printf("Group load key:%v..End\n", key)
++	}(key)
++
+ 	g.Stats.Loads.Add(1)
+ 	viewi, err := g.loadGroup.Do(key, func() (interface{}, error) {
+ 		// Check the cache again because singleflight can only dedup calls
+@@ -262,8 +278,17 @@ func (g *Group) load(ctx Context, key string, dest Sink) (value ByteView, destPo
+ 		g.Stats.LoadsDeduped.Add(1)
+ 		var value ByteView
+ 		var err error
++
++		fmt.Printf("g.loadGroup.Do  key:%v..Begin\n", key)
++		defer func(key string) {
++			fmt.Printf("g.loadGroup.Do key:%v..End\n", key)
++		}(key)
++		fmt.Printf("REAL WORK traverse pickPeer\n")
++
+ 		if peer, ok := g.peers.PickPeer(key); ok {
++			fmt.Printf("REAL WORK2 peer:%v  key:%v\n", peer, key)
+ 			value, err = g.getFromPeer(ctx, peer, key)
++			fmt.Printf("REAL WORK2 peer:%v err:%v key:%v\n", peer, err, key)
+ 			if err == nil {
+ 				g.Stats.PeerLoads.Add(1)
+ 				return value, nil
+@@ -274,7 +299,10 @@ func (g *Group) load(ctx Context, key string, dest Sink) (value ByteView, destPo
+ 			// probably boring (normal task movement), so not
+ 			// worth logging I imagine.
+ 		}
++
++		fmt.Printf("REAL WORK3. peer get key fail\n")
+ 		value, err = g.getLocally(ctx, key, dest)
++		fmt.Printf("REAL WORK4. g.getLocally err:%v\n", err)
+ 		if err != nil {
+ 			g.Stats.LocalLoadErrs.Add(1)
+ 			return nil, err
+@@ -291,6 +319,10 @@ func (g *Group) load(ctx Context, key string, dest Sink) (value ByteView, destPo
+ }
+ 
+ func (g *Group) getLocally(ctx Context, key string, dest Sink) (ByteView, error) {
++	fmt.Printf("Group.getLocally  key:%v..g:%v ctx:%v dst:%vBegin\n", key, g, ctx, dest)
++	defer func(key string) {
++		fmt.Printf("Group.getLocally  key:%v. End\n", key)
++	}(key)
+ 	err := g.getter.Get(ctx, key, dest)
+ 	if err != nil {
+ 		return ByteView{}, err
+@@ -299,12 +331,19 @@ func (g *Group) getLocally(ctx Context, key string, dest Sink) (ByteView, error)
+ }
+ 
+ func (g *Group) getFromPeer(ctx Context, peer ProtoGetter, key string) (ByteView, error) {
++	fmt.Printf("Group.getFromPeer  key:%v..peer:%v Group:%v Begin\n", key, peer, g)
++	defer func(key string) {
++		fmt.Printf("Group.getFromPeer  key:%v..peer:%v End\n", key, peer)
++	}(key)
++
+ 	req := &pb.GetRequest{
+ 		Group: &g.name,
+ 		Key:   &key,
+ 	}
+ 	res := &pb.GetResponse{}
++	fmt.Printf("Group.getFromPeer peer.Get start res:%v req:%v peer:%v\n", res, req, peer)
+ 	err := peer.Get(ctx, req, res)
++	fmt.Printf("Group.getFromPeer peer.Get end err:%v   \n", err)
+ 	if err != nil {
+ 		return ByteView{}, err
+ 	}
+@@ -319,18 +358,30 @@ func (g *Group) getFromPeer(ctx Context, peer ProtoGetter, key string) (ByteView
+ }
+ 
+ func (g *Group) lookupCache(key string) (value ByteView, ok bool) {
++	fmt.Printf("Group.lookupCache  key:%v Begin\n", key)
++	defer func(key string) {
++		fmt.Printf("Group.lookupCache  key:%v End\n", key)
++	}(key)
++
+ 	if g.cacheBytes <= 0 {
+ 		return
+ 	}
+ 	value, ok = g.mainCache.get(key)
+ 	if ok {
+ 		return
+ 	}
+ 	value, ok = g.hotCache.get(key)
++	fmt.Printf("Group.lookupCache  g.hotCache.get ok:%v \n", ok)
+ 	return
+ }
+ 
+ func (g *Group) populateCache(key string, value ByteView, cache *cache) {
++	fmt.Printf("Group.populateCache  key:%v..Begin\n", key)
++	defer func(key string) {
++		fmt.Printf("Group.populateCache  key:%v..End\n", key)
++	}(key)
++
+ 	if g.cacheBytes <= 0 {
+ 		return
+ 	}
+diff --git a/vendor/github.com/golang/groupcache/http.go b/vendor/github.com/golang/groupcache/http.go
+index 14eb345..41e46ba 100644
+--- a/vendor/github.com/golang/groupcache/http.go
++++ b/vendor/github.com/golang/groupcache/http.go
+@@ -32,7 +32,8 @@ import (
+ 
+ const defaultBasePath = "/_groupcache/"
+ 
+-const defaultReplicas = 50
++//const defaultReplicas = 50
++const defaultReplicas = 3
+ 
+ // HTTPPool implements PeerPicker for a pool of HTTP peers.
+ type HTTPPool struct {
+@@ -88,6 +89,10 @@ var httpPoolMade bool
+ // Unlike NewHTTPPool, this function does not register the created pool as an HTTP handler.
+ // The returned *HTTPPool implements http.Handler and must be registered using http.Handle.
+ func NewHTTPPoolOpts(self string, o *HTTPPoolOptions) *HTTPPool {
++	fmt.Printf("HTTPPool.PickPeer self:%v begin\n", self)
++	defer func() {
++		fmt.Printf("HTTPPool.PickPeer self:%v end\n", self)
++	}()
+ 	if httpPoolMade {
+ 		panic("groupcache: NewHTTPPool must be called only once")
+ 	}
+@@ -118,6 +123,10 @@ func NewHTTPPoolOpts(self string, o *HTTPPoolOptions) *HTTPPool {
+ func (p *HTTPPool) Set(peers ...string) {
+ 	p.mu.Lock()
+ 	defer p.mu.Unlock()
++	fmt.Printf("HTTPPool.PickPeer peers:%v begin\n", peers)
++	defer func() {
++		fmt.Printf("HTTPPool.PickPeer p.httpGetters:%v end\n", p.httpGetters)
++	}()
+ 	p.peers = consistenthash.New(p.opts.Replicas, p.opts.HashFn)
+ 	p.peers.Add(peers...)
+ 	p.httpGetters = make(map[string]*httpGetter, len(peers))
+@@ -129,17 +138,29 @@ func (p *HTTPPool) Set(peers ...string) {
+ func (p *HTTPPool) PickPeer(key string) (ProtoGetter, bool) {
+ 	p.mu.Lock()
+ 	defer p.mu.Unlock()
++	fmt.Printf("HTTPPool.PickPeer key:%v begin\n", key)
++	defer func() {
++		fmt.Printf("HTTPPool.PickPeer key:%v end\n", key)
++	}()
+ 	if p.peers.IsEmpty() {
++		fmt.Printf("HTTPPool.PickPeer key:%v p.peers.IsEmpty\n", key)
+ 		return nil, false
+ 	}
+ 	if peer := p.peers.Get(key); peer != p.self {
++		fmt.Printf("HTTPPool.PickPeer key:%v peer != p.self, peer:%v != p.self:%v\n", key, peer, p.self)
+ 		return p.httpGetters[peer], true
+ 	}
++
++	fmt.Printf("HTTPPool.PickPeer key:%v peer == p.self, p.self:%v\n", key, p.self)
+ 	return nil, false
+ }
+ 
+ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+ 	// Parse request.
++	fmt.Printf("HTTPPool.ServeHTTP start\n")
++	defer func() {
++		fmt.Printf("HTTPPool.ServeHTTP end\n")
++	}()
+ 	if !strings.HasPrefix(r.URL.Path, p.opts.BasePath) {
+ 		panic("HTTPPool serving unexpected path: " + r.URL.Path)
+ 	}
+@@ -153,6 +174,7 @@ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+ 
+ 	// Fetch the value for this group/key.
+ 	group := GetGroup(groupName)
++	fmt.Printf("HTTPPool.ServeHTTP group:%v key:%v\n", group, key)
+ 	if group == nil {
+ 		http.Error(w, "no such group: "+groupName, http.StatusNotFound)
+ 		return
+@@ -165,6 +187,7 @@ func (p *HTTPPool) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+ 	group.Stats.ServerRequests.Add(1)
+ 	var value []byte
+ 	err := group.Get(ctx, key, AllocatingByteSliceSink(&value))
++	fmt.Printf("HTTPPool.ServeHTTP group.Get key end err:%v\n", err)
+ 	if err != nil {
+ 		http.Error(w, err.Error(), http.StatusInternalServerError)
+ 		return
+diff --git a/vendor/github.com/golang/groupcache/lru/lru.go b/vendor/github.com/golang/groupcache/lru/lru.go
+index cdfe299..cde9f09 100644
+--- a/vendor/github.com/golang/groupcache/lru/lru.go
++++ b/vendor/github.com/golang/groupcache/lru/lru.go
+@@ -18,6 +18,7 @@ limitations under the License.
+ package lru
+ 
+ import "container/list"
++import "fmt"
+ 
+ // Cache is an LRU cache. It is not safe for concurrent access.
+ type Cache struct {
+@@ -65,6 +66,7 @@ func (c *Cache) Add(key Key, value interface{}) {
+ 	}
+ 	ele := c.ll.PushFront(&entry{key, value})
+ 	c.cache[key] = ele
++	fmt.Printf("LRU c.cache: %v\n", c.cache)
+ 	if c.MaxEntries != 0 && c.ll.Len() > c.MaxEntries {
+ 		c.RemoveOldest()
+ 	}
+diff --git a/vendor/github.com/golang/groupcache/peers.go b/vendor/github.com/golang/groupcache/peers.go
+index a74a79b..cd8de0d 100644
+--- a/vendor/github.com/golang/groupcache/peers.go
++++ b/vendor/github.com/golang/groupcache/peers.go
+@@ -20,6 +20,7 @@ package groupcache
+ 
+ import (
+ 	pb "github.com/golang/groupcache/groupcachepb"
++	"fmt"
+ )
+ 
+ // Context is an opaque value passed through calls to the
+@@ -53,13 +54,16 @@ var (
+ // RegisterPeerPicker registers the peer initialization function.
+ // It is called once, when the first group is created.
+ func RegisterPeerPicker(fn func() PeerPicker) {
++	fmt.Printf("RegisterPeerPicker: start\n")
+ 	if portPicker != nil {
+ 		panic("RegisterPeerPicker called more than once")
+ 	}
+ 	portPicker = fn
++	fmt.Printf("RegisterPeerPicker: end fn:%v\n", fn)
+ }
+ 
+ func getPeers() PeerPicker {
++	fmt.Printf("getPeers: start\n")
+ 	if portPicker == nil {
+ 		return NoPeers{}
+ 	}
+@@ -67,5 +71,6 @@ func getPeers() PeerPicker {
+ 	if pk == nil {
+ 		pk = NoPeers{}
+ 	}
++	fmt.Printf("getPeers: end pk:%v\n", pk)
+ 	return pk
+ }
