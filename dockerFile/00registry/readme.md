@@ -54,3 +54,12 @@ fcad8ad5a40f: Pushed
 v6.9.6-8_2016-12-26: digest: sha256:5b84554eba452c660118ea6589fd4f9fccb003c6c52ad13f67e00d29617b6926 size: 2806
 ➜  build git:(imgfit-cache-debug) ✗
 ```
+
+#### 6.registry ui
+```bash
+docker run -it -p 8080:8080 --name registry-web --link registry \
+           -e REGISTRY_URL=https://tplinux.cn:5000/v2 \
+           -e REGISTRY_TRUST_ANY_SSL=true \
+           -e REGISTRY_BASIC_AUTH="YWRtaW46Y2hhbmdlbWU=" \
+           -e REGISTRY_NAME=localhost:5000 hyper/docker-registry-web
+```

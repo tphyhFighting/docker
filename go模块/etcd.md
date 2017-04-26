@@ -16,17 +16,23 @@ groupcache:分布式缓存
                         cli 请求K
                             | 
                            | | 
-    ===============================================
-    ip1:9000            ip2:9000            ip3:9000
-       ||                  ||                 ||
-       ||                  ||                 ||
+    ======================================================================j
+    ip1:9000            ip2:9000            ip3:9000            ip4:9000
+       ||                  ||                 ||                  ||
+      ------            --------            --------              ||
+      etcd1(leader)     etcd2(followers)    etcd3(followers)      ||    
+      (:2379)
+      ------            --------            --------            ----------
+       ||                  ||                 ||                  ||
+       ||                  ||                 ||                  ||
                     1.查本地cache, hint返回.
-      ------            --------            --------
+      ------            --------            --------            -----------
+      (peek1)           (peek2)             (peek3)             (peek4)
       LRU1              LRU2                LRU3
       kp11              kp21                kp31
       kp12              kp22                kp32
       ...               ...                 ...
-      ------            --------            --------
+      ------            --------            --------            -----------
        ||                  ||                 ||
        ||                  ||                 ||
       ----------------------------------------------
@@ -40,7 +46,8 @@ groupcache:分布式缓存
       ----------------------------------------------
        ||                  ||                 ||
        ||                  ||                 ||
-    ip1:8000            ip2:8000         ip3:8000
+       (docker run --link imgfit:imgfit)
+    imgfit:8000         imgfit:8000         imgfit:8000
     
 所有节点直接可以正常访问。 所有节点都可以访问本节点的图像服务.
 
@@ -59,16 +66,44 @@ firewall-cmd --reload
 #### step2.启动ip1/2/3, 上的imgfit图像缩放服务
 ```bash
 docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -it -p 8000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/build/conf:/app/conf  imgfit bash
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit -d --restart always -p 8000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit 
+docker run  --name imgfit -d --restart always -p 8000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit 
+#imgfitcache
+docker run -it --log-opt max-size=10m --log-opt max-file=3 --name imgfit-cache -p 9000:9000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit bash
+docker run  --name imgfit -d --restart always -p 8000:8000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit 
+
+docker run -it --log-opt max-size=10m --log-opt max-file=3 --name imgfit-cache -p 9000:9000 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit bash
+docker run -it --name imgfit-cache -p 9000:9000 --link imgfit:imgfit -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit bash
+http://127.0.0.1:8000
+docker run -it --name imgfit-cache -p 9000:9000 --link imgfit:http://127.0.0.1:8000-v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  imgfit bash
+
 ```
 
 #### step3 etcd部署
 ##### 3.1 启动三台节点
+etcd -name etcd0 --data-dir infra0 \
+  --cert-file=/root/github/etcd/ser.crt --key-file=/root/github/etcd/ser.key \
+  -listen-client-urls https://0.0.0.0:2379,https://127.0.0.1:2379 \
+  --advertise-client-urls=https://127.0.0.1:2379 \
+  -initial-cluster-token my-etcd-cluster \
+  -initial-cluster etcd0=https://0.0.0.0:2380 \
+  -initial-cluster-state new 
+
+etcd --name infra0 --data-dir infra0 \
+  --cert-file=/root/github/etcd/ser.crt --key-file=/root/github/etcd/ser.key \
+  --advertise-client-urls=https://127.0.0.1:2379 --listen-client-urls=https://127.0.0.1:2379
+
+etcd --name infra0 --data-dir infra0 \
+  --cert-file=/root/github/etcd/ser.crt --key-file=/root/github/etcd/ser.key \
+  --advertise-client-urls https://127.0.0.1:2379 --listen-client-urls https://0.0.0.0:2379,https://127.0.0.1:2379
+
 ```bash
 ip1-->etcd0=http://192.168.9.37:2380
 ip2-->etcd1=http://192.168.9.99:2380
 ip3-->etcd2=http://192.168.9.41:2380 
 
-启动脚本:
+etcd启动脚本:(分别在三台机器)
+ip0:192.168.9.37
 etcd -name etcd0 -initial-advertise-peer-urls http://192.168.9.37:2380 \
   -listen-peer-urls http://192.168.9.37:2380 \
   -listen-client-urls http://192.168.9.37:2379,http://127.0.0.1:2379 \
@@ -77,14 +112,7 @@ etcd -name etcd0 -initial-advertise-peer-urls http://192.168.9.37:2380 \
   -initial-cluster etcd0=http://192.168.9.37:2380,etcd1=http://192.168.9.99:2380,etcd2=http://192.168.9.41:2380 \
   -initial-cluster-state new
 
-etcd -name etcd2 -initial-advertise-peer-urls http://192.168.9.41:2380 \
-    -listen-peer-urls http://192.168.9.41:2380 \
-    -listen-client-urls http://192.168.9.41:2379,http://127.0.0.1:2379 \
-    -advertise-client-urls http://192.168.9.41:2379 \
-    -initial-cluster-token my-etcd-cluster \
-    -initial-cluster etcd0=http://192.168.9.37:2380,etcd1=http://192.168.9.99:2380,etcd2=http://192.168.9.41:2380 \
-    -initial-cluster-state new
-
+ip1:192.168.9.99
 etcd -name etcd1 -initial-advertise-peer-urls http://192.168.9.99:2380 \
     -listen-peer-urls http://192.168.9.99:2380 \
     -listen-client-urls http://192.168.9.99:2379,http://127.0.0.1:2379 \
@@ -92,6 +120,26 @@ etcd -name etcd1 -initial-advertise-peer-urls http://192.168.9.99:2380 \
     -initial-cluster-token my-etcd-cluster \
     -initial-cluster etcd0=http://192.168.9.37:2380,etcd1=http://192.168.9.99:2380,etcd2=http://192.168.9.41:2380 \
     -initial-cluster-state new
+
+ip2:192.168.9.41
+etcd -name etcd2 -initial-advertise-peer-urls http://192.168.9.41:2380 \
+    -listen-peer-urls http://192.168.9.41:2380 \
+    -listen-client-urls http://192.168.9.41:2379,http://127.0.0.1:2379 \
+    -advertise-client-urls http://192.168.9.41:2379 \
+    -initial-cluster-token my-etcd-cluster \
+    -initial-cluster etcd0=http://192.168.9.37:2380,etcd1=http://192.168.9.99:2380,etcd2=http://192.168.9.41:2380 \
+    -initial-cluster-state new
+    
+test: 测试etcd是否正常访问
+➜  imgfit git:(imgfit-cache) etcdctl member list
+4af0a3b2552ca31: name=etcd2 peerURLs=http://192.168.9.41:2380 clientURLs=http://192.168.9.41:2379 isLeader=false
+5265a651acb4a72e: name=etcd0 peerURLs=http://192.168.9.37:2380 clientURLs=http://192.168.9.37:2379 isLeader=true
+df1c14c0132a3287: name=etcd1 peerURLs=http://192.168.9.99:2380 clientURLs=http://192.168.9.99:2379 isLeader=false
+➜  imgfit git:(imgfit-cache) etcdctl set aa "hello"
+hello
+➜  imgfit git:(imgfit-cache) etcdctl get aa
+hello
+➜  imgfit git:(imgfit-cache)
 ```
 ##### 3.2 查看节点成员
 ```bash
@@ -119,6 +167,123 @@ http://192.168.9.39:9000
 http://192.168.9.99:9000
 
 每个节点注册后，通过getNodes获取到v列表，加入到peek中。
+```
+###### 3.4 etcd leader 完成健康检测
+    etcd_http_api:https://segmentfault.com/a/1190000005649865
+    https://www.gitbook.com/book/skyao/leaning-etcd3/details
+    etcd: 客户端选举
+    https://acupple.github.io/2016/05/31/ETCD%E5%AE%9E%E7%8E%B0leader%E9%80%89%E4%B8%BE/
+    etcd: 租约
+    https://godoc.org/github.com/coreos/etcd/clientv3#Lease
+    
+
+###### 3.5 etcd 查看leader   
+```bash
+➜  imgfit git:(imgfit-cache) ✗ etcdctl member list
+4af0a3b2552ca31: name=etcd2 peerURLs=http://192.168.9.41:2380 clientURLs=http://192.168.9.41:2379 isLeader=true
+5265a651acb4a72e: name=etcd0 peerURLs=http://192.168.9.37:2380 clientURLs=http://192.168.9.37:2379 isLeader=false
+df1c14c0132a3287: name=etcd1 peerURLs=http://192.168.9.99:2380 clientURLs=http://192.168.9.99:2379 isLeader=false
+```
+
+    
+###### 3.5 etcd http api 获取leader
+```bash
+➜  imgfit git:(imgfit-cache) ✗ bat http://192.168.9.41:2379/v2/stats/leader
+GET /v2/stats/leader HTTP/1.1
+Host: 192.168.9.41:2379
+Accept: application/json
+Accept-Encoding: gzip, deflate
+User-Agent: bat/0.1.0
+
+HTTP/1.1 200 OK
+Content-Type : application/json
+Date : Mon, 24 Apr 2017 11:09:22 GMT
+Content-Length : 433
+{
+  "leader": "4af0a3b2552ca31",
+  "followers": {
+    "5265a651acb4a72e": {
+      "latency": {
+        "current": 0.002647,
+        "average": 0.006650168674698798,
+        "standardDeviation": 0.029922602034678832,
+        "minimum": 0.000733,
+        "maximum": 0.384149
+      },
+      "counts": {
+        "fail": 1,
+        "success": 166
+      }
+    },
+    "df1c14c0132a3287": {
+      "latency": {
+        "current": 0.001602,
+        "average": 0.00351889534883721,
+        "standardDeviation": 0.005215333946651416,
+        "minimum": 0.000644,
+        "maximum": 0.065966
+      },
+      "counts": {
+        "fail": 0,
+        "success": 172
+      }
+    }
+  }
+}
+
+➜  imgfit git:(imgfit-cache) ✗ bat http://192.168.9.37:2379/v2/stats/leader
+返回403
+{
+  "message": "not current leader"
+}
+➜  imgfit git:(imgfit-cache) ✗ bat http://192.168.9.37:2379/v2/stats/self
+{
+  "name": "etcd0",
+  "id": "5265a651acb4a72e",
+  "state": "StateFollower",
+  "startTime": "2017-04-24T15:53:49.782756142+08:00",
+  "leaderInfo": {
+    "leader": "4af0a3b2552ca31",
+    "uptime": "3h19m12.155311065s",
+    "startTime": "2017-04-24T15:53:49.85959325+08:00"
+  },
+  "recvAppendRequestCnt": 166,
+  "sendAppendRequestCnt": 0
+}
+-----选择 /v2/stats/leader 返回非200, 不是leader
+
+[root@fs12t01 ~]# curl -kv  https://172.16.1.11:2479/v2/stats/leader
+* About to connect() to 172.16.1.11 port 2479 (#0)
+*   Trying 172.16.1.11...
+* Connected to 172.16.1.11 (172.16.1.11) port 2479 (#0)
+* Initializing NSS with certpath: sql:/etc/pki/nssdb
+* skipping SSL peer certificate verification
+* SSL connection using TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+* Server certificate:
+*   subject: O=etcd
+*   start date: 4月 25 04:10:23 2017 GMT
+*   expire date: 4月 25 04:10:23 2018 GMT
+*   common name: (nil)
+*   issuer: O=etcd
+> GET /v2/stats/leader HTTP/1.1
+> User-Agent: curl/7.29.0
+> Host: 172.16.1.11:2479
+> Accept: */*
+>
+< HTTP/1.1 200 OK
+< Content-Type: application/json
+< Date: Tue, 25 Apr 2017 04:27:51 GMT
+< Content-Length: 44
+<
+* Connection #0 to host 172.16.1.11 left intact
+{"leader":"8e9e05c52164694d","followers":{}}[root@fs12t01 ~]#
+[root@fs12t01 ~]#
+[root@fs12t01 ~]# curl -kv  https://172.16.1.11:2479/v2/stats/leader^C
+[root@fs12t01 ~]#
+```
+###### 3.4 imgfit-cache: etcd 获取leader 
+```go
+
 ```
 
 ###### 3.4 imgfit-cache: 开启一个go程， watch 监测etcd节点变化, 发现新的节点就会完成peek注册
@@ -213,6 +378,8 @@ LRU c.cache: map[
 99:重启后.
 从任务一节点访问002: H(002)->99, 99节点LRU存储002
 ```
+
+
 
 ###### 5.总结
 ```concept
@@ -334,6 +501,10 @@ Group.Get g.lookupCache cacheHit:true
 Group.Get key:_v2/image/png/003?w=850&h=200&type=.webp..End
 2017/04/20 19:44:05 [D] [root.go:73] err:<nil>
 2017/04/20 19:44:05 [D] [root.go:85] Get no err
+```
+##### docker imgfit-cache
+```bash
+docker run --log-opt max-size=10m --log-opt max-file=3 --name imgfit-cache -it --network=host -p 9000:9000 -p 2379:2379 -p 2380:2380 -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  apk.302e.com:3000/apkpure/imgfit:imgfit-cache bash
 ```
 
 

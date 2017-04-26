@@ -555,3 +555,18 @@ root@85aaadb5bed7:/app#
 1RUN echo "Asia/Shanghai" > /etc/timezone
 2RUN dpkg-reconfigure -f noninteractive tzdata
 ```
+
+## docker 遇到权限问题.
+[root@centos-linux-1 imgfit]# docker logs -f imgfit
+logmod:7
+2017/04/21 11:48:19 [E] [config.go:57] err:open config.json: permission denied
+2017/04/21 11:48:19 [I] http server Running on http://:8080
+^C
+[root@centos-linux-1 imgfit]# set
+set                  setenforce           setfont              setmetamode          setsid               setup-nsssysinit.sh
+setarch              setfacl              setkeycodes          setpriv              setterm              setvtrgb
+setcap               setfiles             setleds              setsebool            setup-nsssysinit
+[root@centos-linux-1 imgfit]# setenforce 0
+[root@centos-linux-1 imgfit]# setenforce --help
+usage:  setenforce [ Enforcing | Permissive | 1 | 0 ]
+[root@centos-linux-1 imgfit]#
