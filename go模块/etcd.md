@@ -91,7 +91,7 @@ etcd -name etcd0 --data-dir infra0 \
 
 etcd --name infra0 --data-dir infra0 \
   --cert-file=/root/github/etcd/ser.crt --key-file=/root/github/etcd/ser.key \
-  --advertise-client-urls=https://127.0.0.1:2379 --listen-client-urls=https://127.0.0.1:2379
+  --advertise-client-urls=https://127.0.0.1:2379 --listen-client-urls https://0.0.0.0:2379
 
 etcd --name infra0 --data-dir infra0 \
   --cert-file=/root/github/etcd/ser.crt --key-file=/root/github/etcd/ser.key \

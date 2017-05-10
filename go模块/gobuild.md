@@ -20,7 +20,7 @@ usage: link [options] main.o
   -R quantum
     	set address rounding quantum (default -1)
   -T address
-    	set text segment address (default -1)
+    	set text segment addresGs (default -1)
   -V	print version and exit
   -X definition
     	add string value definition of the form importpath.name=value
@@ -88,4 +88,9 @@ App Version:  1.0-1-g783defd
 Go Version:  go1.8
 Build Time:  2017-04-27_11:48:25
 ➜  smart-backup git:(master)
+```
+```
+bash
+查看调试信息
+set -ex
 ```
