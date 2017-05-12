@@ -1,4 +1,81 @@
-#protobuf 使用
+####  protobuf 使用
+
+###### step1.项目结构
+Makefile + protos
+
+```bash
+➜  proto-define git:(local) ✗ make clean
+rm -rf java js go py
+➜  proto-define git:(local) ✗ pwd
+/Users/apple/go-dev/src/proto-define
+➜  proto-define git:(local) ✗ tree
+.
+├── Makefile
+├── README.md
+└── protos
+    └── log_request.proto
+
+1 directory, 3 files
+➜  proto-define git:(local) ✗ make all
+mkdir -p js
+protoc --js_out=library=apkpure_proto_libs,binary:js protos/*.proto
+mkdir -p java
+protoc --javanano_out=java protos/*.proto
+mkdir -p go
+protoc --go_out=go protos/*.proto
+mkdir -p py
+protoc --python_out=py protos/*.proto
+➜  proto-define git:(local) ✗ tree
+.
+├── Makefile
+├── README.md
+├── go
+│   └── protos
+│       └── log_request.pb.go
+├── java
+│   └── com
+│       └── apkpure
+│           └── proto
+│               └── nano
+│                   └── LogRequestProtos.java
+├── js
+│   └── apkpure_proto_libs.js
+├── protos
+│   └── log_request.proto
+└── py
+    └── protos
+        └── log_request_pb2.py
+
+11 directories, 7 files
+➜  proto-define git:(local) ✗
+```
+##### step2. Makefile
+创建不同语言的目录，执行protoc 生成对应语言的代码
+```bash
+➜  proto-define git:(local) ✗ cat Makefile
+all: js java go py
+
+js:
+	mkdir -p js
+	protoc --js_out=library=apkpure_proto_libs,binary:js protos/*.proto
+
+java:
+	mkdir -p java
+	protoc --javanano_out=java protos/*.proto
+
+go:
+	mkdir -p go
+	protoc --go_out=go protos/*.proto
+
+py:
+	mkdir -p py
+	protoc --python_out=py protos/*.proto
+
+clean:
+	rm -rf java js go py
+➜  proto-define git:(local) ✗
+```
+
 
 
 ##0x01 cli(python)
@@ -69,9 +146,7 @@ def main():
 
 if __name__ == '__main__':
     main()
-    
+
 ```
 
 ##0x02 ser(go)
-
-
