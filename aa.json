@@ -1,0 +1,64 @@
+{
+  "apk_type": "0",
+  "content_rating": [
+    "Everyone",
+    "Mild Fantasy Violence"
+  ],
+  "category": "GAME_ADVENTURE",
+  "Description": "Join Trainers across the globe who are discovering Pokémon as they explore the world around them. The newest update to Pokémon GO, the global gaming sensation that has been downloaded 650 million times and named “Best Mobile Game” by The Game Developers Choice Awards and “Best App of the Year” by TechCrunch, introduced the addition of over 80 beloved Pokémon among several other new features.Venusaur, Charizard, Blastoise, Pikachu, and many other Pokémon have been discovered!Now’s your chance to discover and capture the Pokémon all around you—so get your shoes on, step outside, and explore the world. You’ll join one of three teams and battle for the prestige and ownership of Gyms with your Pokémon at your side. Pokémon are out there, and you need to find them. As you walk around a neighborhood, your smartphone will vibrate when there’s a Pokémon nearby. Take aim and throw a Poké Ball… You’ll have to stay alert, or it might get away! Search far and wide for Pokémon and itemsCertain Pokémon appear near their native environment—look for Water-type Pokémon by lakes and oceans. Visit PokéStops, found at interesting places like museums, art installations, historical markers, and monuments, to stock up on Poké Balls and helpful items. Catching, hatching, evolving, and moreAs you level up, you’ll be able to catch more-powerful Pokémon to complete your Pokédex. You can add to your collection by hatching Pokémon Eggs based on the distances you walk. Help your Pokémon evolve by catching many of the same kind. Choose a Buddy Pokémon to walk with and earn Candy that will help you make your Pokémon stronger. Take on Gym battles and defend your GymAs your Charmander evolves to Charmeleon and then Charizard, you can battle together to defeat a Gym and assign your Pokémon to defend it against all comers. It’s time to get moving—your real-life adventures await!Note: - This app is free-to-play and offers in-game purchases. It is optimized for smartphones, not tablets.- Compatible with Android devices that have 2GB RAM or more and have Android Version 4.4 - 7.0+ installed.- Compatibility is not guaranteed for devices without GPS capabilities or devices that are connected only to Wi-Fi networks- Compatibility with tablet devices is not guaranteed.- Application may not run on certain devices even if they have compatible OS versions installed.- It is recommended to play while connected to a network in order to obtain accurate location information.- Compatibility information may be changed at any time.- Please visit www.PokemonGO.com for additional compatibility information. - Information current as of March 31, 2017",
+  "developer": "Niantic, Inc.",
+  "description_short": "Step outside and catch Pokémon in the real world! Collect &amp; battle with others.",
+  "description_translation": "",
+  "developer_id": "Niantic,+Inc.",
+  "developer_link": [
+    {
+      "name": "Visit website",
+      "href": "https://www.google.com/url?q=http://pokemongo.nianticlabs.com&sa=D&usg=AFQjCNEn3pLqQDMHTWy876j_kpXhVx9NyQ"
+    },
+    {
+      "name": "Email pokemon-go-support@nianticlabs.com",
+      "href": "mailto:pokemon-go-support@nianticlabs.com"
+    },
+    {
+      "name": "Privacy Policy",
+      "href": "https://www.google.com/url?q=https://nianticlabs.com/privacy/pokemongo/pt_br&sa=D&usg=AFQjCNFOvbBuGue96QdvwODVeqcf6zu0mA"
+    }
+  ],
+  "detail_url": "",
+  "img": [
+    "//lh3.googleusercontent.com/B6tUaRH9pxsWGwtvKx1hueyzsp9LABlkYdkPqYizrMo2LCH5f9k4qcg7nUWl87qW_oY=h310-rw",
+    "//lh3.googleusercontent.com/J9EMhOW0zNk6VFH8zGrPDE6RQYphlFTgKAwlNlpV-_g6Tkhl2VOi0jJhcE2uinWuZQ=h310-rw",
+    "//lh3.googleusercontent.com/-IjsRq68IFoZYsspm7rG-vBzb40stJ0n4XfP1YtzqW8nbKB14HYNZZMBKyws0EpHD_0=h310-rw",
+    "//lh3.googleusercontent.com/x2va_xeSfL29ScrTnLWfdxoF9Fof2TmZNFM5dItgT0cd5ho2bII11bBP0MqoKFQNAt2D=h310-rw",
+    "//lh3.googleusercontent.com/_Kip0Qf9pghGXHZA0IMCrPzM5nAoloG6RIjRRIreAzG2v-F4t8f0VVXimXIMY8Sn5Q=h310-rw",
+    "//lh3.googleusercontent.com/kNZGVQZ7kioool6Dkg6Av3jVP3GOZXs72ELbTGva5hWXQWCfc-4OpyNTtZYDXjwxeg=h310-rw",
+    "//lh3.googleusercontent.com/-8F-a-NXGkOMoej-FIQXV5LPePWFbyj2Ql7z_xCM4MkszVfKDXYmhYmNOfJNQY0Z_w=h310-rw",
+    "//lh3.googleusercontent.com/RVItTUG-T4r4fU3oJTae9-40VgkCCsbaBtjSDu50VzIxN4rGEkPK08FEEiLTcvBaE8yx=h310-rw"
+  ],
+  "icon": "//lh3.googleusercontent.com/wPfLmWBJwsPdBhsFXc8X4QZOOvePWjoOBLFXXCwyegjRwYOuabmG5cynthlW0HDgy9s=w300-rw",
+  "install_count_1": 100000000,
+  "install_count_2": 500000000,
+  "interactive_elements": [
+    "Users Interact",
+    "Shares Info",
+    "Shares Location",
+    "Digital Purchases"
+  ],
+  "in_app_products": "$0.99 - $99.99 per item",
+  "name": "Pokémon GO",
+  "price": "0",
+  "package_name": "",
+  "review_stars": 4.1,
+  "review_count": 8893259,
+  "review_stars_search": "",
+  "published": true,
+  "published_date": "May 9, 2017",
+  "tube": "",
+  "tube_id": "",
+  "translation_bar": "",
+  "update": "May 9, 2017",
+  "version_description": "- Added Traditional Chinese language support.- Updated the Pokémon collection screen scroll bar.- Various bug fixes.- Minor text fixes.",
+  "version_size": "",
+  "version_current_version": "0.61.0",
+  "version_requires_android": "4.4 and up"
+}
