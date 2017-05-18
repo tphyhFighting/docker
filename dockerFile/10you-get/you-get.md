@@ -2,6 +2,8 @@
 [you-get](https://github.com/soimort/you-get)
 
 #### 0x00 需求
+- video: 输入url,提取id,返回title/length/png
+- 图片上传s3,fid
 >评论后台需要支持分享youtube视频功能，需要根据视频id获取视频信息.
 <br>
 >example:<br>
@@ -66,3 +68,11 @@ video_info = parse.parse_qs(get_content('https://www.youtube.com/get_video_info?
 - get_content
   >
 - parse.parse_qs
+
+{"videoDetails":
+{"thumbnail":
+{"thumbnails":
+[
+  {"url":"https://i.ytimg.com/vi/2EuTs1Yo-Bo/hqdefault.jpg?custom=true\u0026w=168\u0026h=94\u0026stc=true\u0026jpg444=true\u0026jpgq=90\u0026sp=68\u0026sigh=VmCLcgtnPMGHe9FV-o6jugTZYxM","width":168,"height":94},{"url":"https://i.ytimg.com/vi/2EuTs1Yo-Bo/hqdefault.jpg?custom=true\u0026w=196\u0026h=110\u0026stc=true\u0026jpg444=true\u0026jpgq=90\u0026sp=68\u0026sigh=gZHr2qizhg8y97sw3Dhepohh8g8","width":196,"height":110},{"url":"https://i.ytimg.com/vi/2EuTs1Yo-Bo/hqdefault.jpg?custom=true\u0026w=246\u0026h=138\u0026stc=true\u0026jpg444=true\u0026jpgq=90\u0026sp=68\u0026sigh=WV4Kv4SpM42tgE159daB0L4t1XE","width":246,"height":138},{"url":"https://i.ytimg.com/vi/2EuTs1Yo-Bo/hqdefault.jpg?custom=true\u0026w=336\u0026h=188\u0026stc=true\u0026jpg444=true\u0026jpgq=90\u0026sp=68\u0026sigh=ykaAQx3QdvqPZFEYdTCT8pnjwkE","width":336,"height":188}]}},"adSafetyReason":{"isRemarketingEnabled":true,"isFocEnabled":true}}
+
+####
