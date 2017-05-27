@@ -3,13 +3,22 @@
   <head>
     <meta charset="utf-8">
     <title>youtube api</title>
+    <style>
+.tube{ position: relative; background: #fff; border: 1px solid #D4101F; font-size: 14px;padding-right: 5px; display: inline-block; }
+.tube::before { content: '\25B6';color: #fff;padding: 0 10px;margin-right: 5px;background: #D4101F;}
+.tube u{ text-decoration:none; color:#D4101F; padding: 0 5px; }
+</style>
   </head>
   <body>
+    <form class="search-form">
+      <input type="text" name="id" value="M7lc1UVf-VE" id="videoId">
+      <button type="submit" class="btn btn-lg btn-theme btn-block">搜索</button>
+    </form>
     <!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
     <div class="player" id="player">
     </div>
 
-    <script type="text/javascript">
+    <!-- <script type="text/javascript">
     // 2. This code loads the IFrame Player API code asynchronously.
      var tag = document.createElement('script');
      tag.src = "https://www.youtube.com/iframe_api";
@@ -51,6 +60,23 @@
        player.stopVideo();
      }
      }
-    </script>
+    </script> -->
+
+    <br>
+    web
+    <br>
+    <div class="">
+      <p>
+        <span class="tube" data-url="https://www.youtube.com/watch?v=mY6rTSBIHGI">SpongeBob SquarePants Full Episodes - 24/7 Live<u>2:30</u></span>
+      </p>
+      <p>
+        <span class="tube" data-url="https://www.youtube.com/watch?v=mY6rTSBIHGI">スプラトゥーン2<u>10:30</u></span>
+      </p>
+      <p>
+        <span class="tube" data-url="https://www.youtube.com/watch?v=mY6rTSBIHGI">视频标题<u>6:30</u></span>
+      </p>
+    </div>
+     <script src="./static/js/jquery.min.js"></script>
+     <script src="./static/js/search.js"></script>
   </body>
 </html>

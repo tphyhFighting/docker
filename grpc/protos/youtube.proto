@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option java_package = "com.apkpure.proto";
+option java_outer_classname = "YoutubeWatchProto";
+
+package protos;
+
+// The greeting service definition.
+service Greeter {
+  // Sends a greeting
+  rpc YoutubeWatch (YoutubeWatchRequest) returns (YoutubeWatchReply) {}
+}
+
+// The request message containing the user's name.
+message YoutubeWatchRequest {
+  string link = 1;
+}
+
+// The response message containing the greetings
+message YoutubeWatchReply {
+  string Id = 1;
+  string Title = 2;
+  string ThumbnailUrl = 3;
+  string ThumbnailFid = 4;
+  string ThumbnailImgFitApi = 5;
+  string LengthSeconds = 6;
+}

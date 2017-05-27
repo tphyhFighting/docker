@@ -26,3 +26,6 @@ docker run -d --restart always --name imgfit-cache -p 9000:9000   -v `pwd`/confi
 
 
 docker run -d --restart always --name imgfit-cache --network=host   -v `pwd`/config.json:/app/config.json -v `pwd`/conf:/app/conf  apk.302e.com:3000/apkpure/imgfit:imgfit-cache
+
+
+etcdctl get --prefix=true imgcahe
