@@ -36,3 +36,40 @@ total 16
 ```
 
 #### 创建项目
+```bash
+➜  11dj git:(go) django-admin.py startproject HelloWorld
+➜  11dj git:(go) ✗ ll
+total 32
+drwxr-xr-x   7 apple  staff  238  5 27 17:56 .
+drwxr-xr-x  23 apple  staff  782  5 27 17:40 ..
+-rw-r--r--   1 apple  staff  316  5 27 17:41 Dockerfile.env
+drwxr-xr-x   4 apple  staff  136  5 27 17:56 HelloWorld
+-rw-r--r--   1 apple  staff  691  5 27 17:55 dj.md
+-rw-r--r--   1 apple  staff   12  5 27 17:51 main.py
+-rw-r--r--   1 apple  staff  104  5 27 17:41 require.txt
+➜  11dj git:(go) ✗
+➜  11dj git:(go) ✗ cd HelloWorld
+➜  HelloWorld git:(go) ✗ pwd
+/Users/apple/github/docker/dockerFile/11dj/HelloWorld
+➜  HelloWorld git:(go) ✗ ls -al
+total 8
+drwxr-xr-x  4 apple  staff  136  5 27 17:56 .
+drwxr-xr-x  7 apple  staff  238  5 27 17:57 ..
+drwxr-xr-x  7 apple  staff  238  5 27 17:58 HelloWorld
+-rwxr-xr-x  1 apple  staff  808  5 27 17:56 manage.py
+➜  HelloWorld git:(go) ✗ docker run --log-opt max-size=10m --log-opt max-file=3 --name  dj-hello  -it -v `pwd`:/usr/src/app -p 8000:8000 dj-local
+Performing system checks...
+
+System check identified no issues (0 silenced).
+
+You have 13 unapplied migration(s). Your project may not work properly until you apply the migrations for app(s): admin, auth, contenttypes, sessions.
+Run 'python manage.py migrate' to apply them.
+
+May 27, 2017 - 10:03:30
+Django version 1.11.1, using settings 'HelloWorld.settings'
+Starting development server at http://0.0.0.0:8000/
+Quit the server with CONTROL-C.
+[27/May/2017 10:03:50] "GET / HTTP/1.1" 200 1716
+Not Found: /favicon.ico
+[27/May/2017 10:03:50] "GET /favicon.ico HTTP/1.1" 404 1966
+```
