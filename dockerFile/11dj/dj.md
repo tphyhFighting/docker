@@ -73,3 +73,30 @@ Quit the server with CONTROL-C.
 Not Found: /favicon.ico
 [27/May/2017 10:03:50] "GET /favicon.ico HTTP/1.1" 404 1966
 ```
+
+#### pg 修正setting.py中数据库为postgresql
+```
+(dj3.5) ➜  HelloWorld git:(go) ✗ ls
+HelloWorld db.sqlite3 manage.py  run.sh
+(dj3.5) ➜  HelloWorld git:(go) ✗ python manage.py dbshell
+psql (9.6.1)
+Type "help" for help.
+postgres=# \d you_tube_video_info
+                                      Table "public.you_tube_video_info"
+       Column       |         Type          |                            Modifiers
+--------------------+-----------------------+------------------------------------------------------------------
+ id                 | integer               | not null default nextval('you_tube_video_info_id_seq'::regclass)
+ video_id           | character varying(11) | not null default ''::character varying
+ title              | text                  | not null default ''::text
+ length_seconds     | text                  | not null default ''::text
+ screen_fid         | text                  | not null default ''::text
+ screen_youtube_url | text                  | not null default ''::text
+ key_worlds         | text                  | not null default ''::text
+ info               | jsonb                 | not null default '{}'::jsonb
+ who                | text                  | not null default ''::text
+Indexes:
+    "you_tube_video_info_pkey" PRIMARY KEY, btree (id)
+    "you_tube_video_info_video_id" btree (video_id)
+
+postgres=#
+```
